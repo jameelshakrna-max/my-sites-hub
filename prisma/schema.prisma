@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sites     Site[]
+  settings  DashboardSettings[]
+}
+
+model Site {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  description String?
+  category    String   @default("شخصي")
+  iconColor   String   @default("#059669")
+  order       Int      @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DashboardSettings {
+  id        String   @id @default(cuid())
+  key       String
+  value     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
+  @@unique([key, userId])
+}
