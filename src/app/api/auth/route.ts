@@ -1,29 +1,22 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getUserEmailFromRequest } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email } = body;
-
-    if (!email || typeof email !== 'string' || !email.trim()) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    const email = await getUserEmailFromRequest(request);
+    if (!email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
-
-    // Find or create user
     const user = await db.user.upsert({
-      where: { email: trimmedEmail },
+      where: { email },
       update: {},
-      create: { email: trimmedEmail },
+      create: { email },
     });
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-      },
+      user: { id: user.id, email: user.email },
     });
   } catch (error) {
     console.error('Error in auth:', error);
