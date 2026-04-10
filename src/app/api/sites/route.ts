@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getUserEmailFromRequest } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
-
+    const email = await getUserEmailFromRequest(request);
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -29,23 +28,23 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email, name, url, description, category, iconColor } = body;
-
+    const email = await getUserEmailFromRequest(request);
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { name, url, description, category, iconColor } = body;
 
     if (!name || !url) {
       return NextResponse.json({ error: 'Name and URL are required' }, { status: 400 });
     }
 
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get the max order to append at the end
     const maxOrder = await db.site.findFirst({
       where: { userId: user.id },
       orderBy: { order: 'desc' },
