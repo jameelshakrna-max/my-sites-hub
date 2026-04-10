@@ -54,6 +54,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import AuthScreen from '@/components/AuthScreen';
+import { useAuth } from '@/context/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────
 interface Site {
@@ -168,173 +170,6 @@ function normalizeUrl(url: string): string {
     return 'https://' + url;
   }
   return url;
-}
-
-// ─── Login Screen ─────────────────────────────────────────────────
-function LoginScreen({ onLogin }: { onLogin: (email: string) => void }) {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError('يرجى إدخال البريد الإلكتروني');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        safeSetItem('hub-email', data.user.email);
-        onLogin(data.user.email);
-      } else {
-        setError('حدث خطأ أثناء تسجيل الدخول');
-      }
-    } catch {
-      setError('حدث خطأ في الاتصال');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen relative overflow-hidden text-white flex items-center justify-center">
-      {/* Background Effects */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
-      <div className="fixed top-0 right-0 w-96 h-96 bg-sky-500/[0.05] rounded-full blur-3xl" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/[0.05] rounded-full blur-3xl" />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-slate-500/[0.03] rounded-full blur-3xl" />
-
-      <motion.div
-        className="relative z-10 w-full max-w-md mx-4"
-        initial={{ y: 10 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        {/* Card */}
-        <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 shadow-2xl">
-          {/* Icon */}
-          <motion.div
-            className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-xl shadow-sky-500/25 mb-6"
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          >
-            <LayoutGrid className="w-10 h-10 text-white" />
-          </motion.div>
-
-          {/* Title */}
-          <motion.div
-            className="text-center mb-8"
-            initial={{ y: 5 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h1 className="text-3xl font-bold bg-gradient-to-l from-white to-slate-300 bg-clip-text text-transparent mb-2">
-              لوحة مواقعي
-            </h1>
-            <p className="text-slate-400 text-sm">
-              مركزك الشخصي لتنظيم مواقعك
-            </p>
-          </motion.div>
-
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <motion.div
-              initial={{ y: 5 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Label className="text-slate-300 text-sm mb-2 block flex items-center gap-2">
-                <Mail className="w-4 h-4 text-slate-500" />
-                البريد الإلكتروني
-              </Label>
-              <Input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                dir="ltr"
-                className="h-12 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 rounded-xl text-center text-base focus:border-sky-500/50 focus:ring-sky-500/20 transition-all"
-                disabled={loading}
-                autoFocus
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ y: 5 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-12 bg-gradient-to-l from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl font-medium text-base shadow-lg shadow-sky-500/20 transition-all"
-              >
-                {loading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                  />
-                ) : (
-                  'دخول'
-                )}
-              </Button>
-            </motion.div>
-
-            {/* Error Message */}
-            <AnimatePresence>
-              {error && (
-                <motion.p
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="text-red-400 text-sm text-center"
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </form>
-        </div>
-
-        {/* Feature Icons */}
-        <motion.div
-          className="flex items-center justify-center gap-8 mt-8"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          {[
-            { icon: Globe, label: 'مواقعك', color: 'text-sky-400' },
-            { icon: Search, label: 'بحث', color: 'text-amber-400' },
-            { icon: Settings, label: 'إعدادات', color: 'text-purple-400' },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.label} className="flex flex-col items-center gap-1.5">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                  <Icon className={`w-5 h-5 ${item.color}`} />
-                </div>
-                <span className="text-[10px] text-slate-500">{item.label}</span>
-              </div>
-            );
-          })}
-        </motion.div>
-      </motion.div>
-    </div>
-  );
 }
 
 // ─── Dashboard Screen ─────────────────────────────────────────────
@@ -1252,31 +1087,25 @@ function safeRemoveItem(key: string): void {
 
 // ─── Main Page ────────────────────────────────────────────────────
 // null = loading (SSR), '' = no email (show login), string = logged in (show dashboard)
-function getInitialEmail(): string | null {
-  if (typeof window !== 'undefined') {
-    return safeGetItem('hub-email') ?? '';
-  }
-  return null;
-}
 
 export default function DashboardPage() {
-  const [userEmail, setUserEmail] = useState<string | null>(getInitialEmail);
+  const { user, loading: authLoading, signOut } = useAuth();
 
-  if (userEmail === null) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
           className="w-10 h-10 border-3 border-sky-500/30 border-t-sky-500 rounded-full"
         />
       </div>
     );
   }
 
-  if (!userEmail) {
-    return <LoginScreen onLogin={(email) => setUserEmail(email)} />;
+  if (!user) {
+    return <AuthScreen />;
   }
 
-  return <DashboardScreen email={userEmail} onLogout={() => setUserEmail('')} />;
+  return <DashboardScreen email={user.email!} onLogout={async () => { await signOut(); }} />;
 }
