@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-let _supabase: ReturnType<typeof createClient> | null = null
+let _supabase = null
 
 function getSupabase() {
   if (!_supabase) {
@@ -13,7 +13,7 @@ function getSupabase() {
   return _supabase
 }
 
-export const supabase = new Proxy({} as any, {
+export const supabase = new Proxy({}, {
   get(_target, prop) {
     const client = getSupabase()
     if (!client) return () => Promise.resolve({ data: null, error: null })
