@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getUserEmailFromRequest } from '@/lib/auth';
 
 export async function GET(
   _request: Request,
@@ -7,9 +8,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const site = await db.site.findUnique({
-      where: { id },
-    });
+    const email = await getUserEmailFromRequest(_request);
+    if (!email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const site = await db.site.findUnique({ where: { id } });
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
@@ -26,15 +30,12 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { email, name, url, description, category, iconColor } = body;
-
-    // Verify user ownership
+    const email = await getUserEmailFromRequest(request);
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -43,6 +44,9 @@ export async function PUT(
     if (!existingSite || existingSite.userId !== user.id) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
+
+    const body = await request.json();
+    const { name, url, description, category, iconColor } = body;
 
     const site = await db.site.update({
       where: { id },
@@ -68,14 +72,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
-
+    const email = await getUserEmailFromRequest(request);
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -85,9 +87,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    await db.site.delete({
-      where: { id },
-    });
+    await db.site.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting site:', error);
