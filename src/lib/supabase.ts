@@ -13,12 +13,20 @@ function getSupabase() {
   return _supabase
 }
 
-export const supabase = new Proxy({}, {
+function noop() { return Promise.resolve({ data: null, error: null }) }
+
+const safeHandler = {
   get(_target, prop) {
     const client = getSupabase()
-    if (!client) return () => Promise.resolve({ data: null, error: null })
+    if (!client) {
+      if (prop === 'then') return undefined
+      if (prop === 'auth') return new Proxy({}, safeHandler)
+      return noop
+    }
     const val = client[prop]
     if (typeof val === 'function') return val.bind(client)
     return val
   }
-})
+}
+
+export const supabase = new Proxy({}, safeHandler)
