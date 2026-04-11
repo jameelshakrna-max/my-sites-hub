@@ -1,3 +1,4 @@
+import type { Variants } from 'framer-motion';
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -117,21 +118,21 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 8 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.4, ease: 'easeOut' as const as const },
+    transition: { duration: 0.4, ease: 'easeOut' },
   },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { scale: 0.97 },
   visible: {
     scale: 1,
     opacity: 1,
-    transition: { duration: 0.3, ease: 'easeOut' as const },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
