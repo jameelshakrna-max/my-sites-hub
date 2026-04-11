@@ -122,7 +122,7 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.4, ease: 'easeOut' as const },
+    transition: { duration: 0.4, ease: 'easeOut' as const as const },
   },
 };
 
@@ -131,7 +131,7 @@ const cardVariants = {
   visible: {
     scale: 1,
     opacity: 1,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' as const },
   },
 };
 
