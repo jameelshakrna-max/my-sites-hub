@@ -48,7 +48,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const results = [];
+    const results: any[] = [];
     for (const [key, value] of Object.entries(settings)) {
       const result = await db.dashboardSettings.upsert({
         where: { key_userId: { key, userId: user.id } },
